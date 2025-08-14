@@ -1,0 +1,74 @@
+@model IEnumerable<DotNetCoreSqlDb.Models.Price>
+
+@{
+    ViewData["Title"] = "Price List";
+}
+
+<h1>Price List</h1>
+
+<!-- CSRF対策のトークン -->
+@Html.AntiForgeryToken()
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Item Name</th>
+            <th>Amount</th>
+            <th>Updated Date</th>
+            <th>Adjust</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr id="row-@item.ID">
+            <td>@item.ItemName</td>
+            <td class="amount">@item.Amount</td>
+            <td class="updated">@item.UpdatedDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            <td>
+                <button class="btn btn-sm btn-success" onclick="adjustPrice(@item.ID, 10)">+10</button>
+                <button class="btn btn-sm btn-warning" onclick="adjustPrice(@item.ID, -10)">-10</button>
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        function adjustPrice(id, change) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch(`/Price/AdjustPrice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${encodeURIComponent(id)}&change=${encodeURIComponent(change)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const row = document.getElementById(`row-${id}`);
+                    row.querySelector('.amount').innerText = data.newAmount;
+                    row.querySelector('.updated').innerText = data.updated;
+
+                    // 価格更新した行をハイライト（視覚効果）
+                    row.style.backgroundColor = '#d4edda';
+                    setTimeout(() => { row.style.backgroundColor = ''; }, 500);
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+}
