@@ -13,7 +13,7 @@ namespace DotNetCoreSqlDb.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult eIndx()
         {
             return View();
         }
